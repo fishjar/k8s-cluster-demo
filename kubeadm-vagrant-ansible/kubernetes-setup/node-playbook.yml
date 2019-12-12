@@ -1,0 +1,124 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: 安装 docker 相关依赖
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+
+    - name: 添加 docker key
+      apt_key:
+        # url: https://download.docker.com/linux/ubuntu/gpg
+        url: http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg
+        state: present
+
+    - name: 添加 docker 国内源
+      apt_repository:
+        # repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        repo: deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu xenial stable
+        state: present
+
+    - name: 安装 docker
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - docker-ce=5:18.09.0~3-0~ubuntu-xenial
+          - docker-ce-cli=5:18.09.0~3-0~ubuntu-xenial
+          - containerd.io
+      notify:
+        - docker status
+
+    # 经测试，此步可略
+    - name: 添加 vagrant 到 docker 用户组 （可略）
+      user:
+        name: vagrant
+        group: docker
+
+    # 经测试虚拟机没有设置虚拟内存，因此此步可略
+    - name: 移除 swapfile （可略）
+      mount:
+        name: "{{ item }}"
+        fstype: swap
+        state: absent
+      with_items:
+        - swap
+        - none
+
+    # 经测试虚拟机没有设置虚拟内存，因此此步可略
+    - name: 关闭 swap （可略）
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: 添加 kubernetes key
+      apt_key:
+        # url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        url: https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg
+        state: present
+
+    - name: 添加 kubernetes 国内源
+      apt_repository:
+        # repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        repo: deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+
+    - name: 安装 kubelet、kubeadm、kubectl
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - kubelet
+          - kubeadm
+          - kubectl
+
+    - name: 设置节点IP
+      lineinfile:
+        path: /etc/default/kubelet
+        state: present
+        create: yes
+        line: KUBELET_EXTRA_ARGS="--node-ip={{ node_ip }}"
+
+    - name: 重启 kubelet
+      service:
+        name: kubelet
+        daemon_reload: yes
+        state: restarted
+
+    - name: 拉取 k8s 所需镜像
+      shell: |
+        for  i  in  `kubeadm config images list`;  do
+          imageName=${i#k8s.gcr.io/}
+          docker pull registry.aliyuncs.com/google_containers/$imageName
+          docker tag registry.aliyuncs.com/google_containers/$imageName k8s.gcr.io/$imageName
+          docker rmi registry.aliyuncs.com/google_containers/$imageName
+        done;
+
+    ########### 以上步骤所有节点一样 ##############
+
+    - name: 添加路由（避免网络插件1/2错误）
+      # command: route add 10.96.0.1 gw 192.168.50.10
+      command: ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
+
+    - name: 复制加入集群命令到节点
+      copy: src=join-command dest=/tmp/join-command.sh mode=0777
+
+    - name: 加入集群
+      command: sh /tmp/join-command.sh
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started
