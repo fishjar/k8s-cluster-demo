@@ -37,7 +37,7 @@ echo -e "\e[1;36m ***** 重启docker ***** \e[0m"
 sudo mkdir -p /etc/systemd/system/docker.service.d
 sudo systemctl daemon-reload && sudo systemctl restart docker
 
-echo -e "\e[1;36m ***** 关闭swapoff ***** \e[0m"
+echo -e "\e[1;36m ***** 关闭swap ***** \e[0m"
 sudo swapoff -a
 sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 

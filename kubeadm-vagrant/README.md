@@ -206,7 +206,7 @@ sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert
 # root用户
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
-# 如果是非root用户，需要配置
+# 非root用户的配置
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config

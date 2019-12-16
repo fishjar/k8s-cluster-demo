@@ -4,10 +4,13 @@ echo -e "\e[1;36m ********** 主节点 ********** \e[0m"
 echo -e "\e[1;36m ***** 建立集群 ***** \e[0m"
 sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s-master
 
-echo -e "\e[1;36m ***** 配置非root用户 ***** \e[0m"
-mkdir -p /home/vagrant/.kube
+echo -e "\e[1;36m ***** 非root用户配置 ***** \e[0m"
+sudo --user=vagrant mkdir -p /home/vagrant/.kube
 sudo cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-sudo chown $(id -u):$(id -g) /home/vagrant/.kube/config
+sudo chown $(id -u vagrant):$(id -g vagrant) /home/vagrant/.kube/config
+
+echo -e "\e[1;36m ***** 配置环境变量 ***** \e[0m"
+export KUBECONFIG=/etc/kubernetes/admin.conf
 
 echo -e "\e[1;36m ***** 安装网络插件 ***** \e[0m"
 sudo sysctl net.bridge.bridge-nf-call-iptables=1

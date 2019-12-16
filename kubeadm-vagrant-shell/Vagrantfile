@@ -13,8 +13,8 @@ Vagrant.configure("2") do |config|
         master.vm.box = IMAGE_NAME
         master.vm.network "private_network", ip: "192.168.50.10"
         master.vm.hostname = "k8s-master"
-        config.vm.provision "shell", path: "all.sh"
-        config.vm.provision "shell", path: "master.sh"
+        master.vm.provision "shell", path: "all.sh"
+        master.vm.provision "shell", path: "master.sh"
     end
 
     (1..N).each do |i|
@@ -22,8 +22,8 @@ Vagrant.configure("2") do |config|
             node.vm.box = IMAGE_NAME
             node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
             node.vm.hostname = "node-#{i}"
-            config.vm.provision "shell", path: "all.sh"
-            # config.vm.provision "shell", path: "node.sh"
+            node.vm.provision "shell", path: "all.sh"
+            node.vm.provision "shell", path: "node.sh"
         end
     end
 end
