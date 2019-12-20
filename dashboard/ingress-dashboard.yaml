@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-dashboard
+  namespace: kubernetes-dashboard
+  annotations:
+    # use the shared ingress-nginx
+    kubernetes.io/ingress.class: "kubernetes-dashboard"
+spec:
+  rules:
+    - host: dashboard.foo.org
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: kubernetes-dashboard
+              servicePort: 80
