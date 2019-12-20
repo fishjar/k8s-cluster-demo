@@ -11,6 +11,11 @@
 
 （略）
 
+```sh
+# https://community.oracle.com/docs/DOC-1022800
+# https://github.com/oracle/vagrant-boxes/tree/master/Kubernetes
+```
+
 ### 创建`vagrant`文件
 
 ```Vagrantfile
@@ -249,10 +254,17 @@ kubectl delete node <node name>
 # https://stackoverflow.com/questions/39869583/how-to-get-kube-dns-working-in-vagrant-cluster-using-kubeadm-and-weave
 # https://github.com/weaveworks/weave/issues/3363
 
+# 临时添加
 # 执行
 sudo route add 10.96.0.1 gw 192.168.50.10
-# 或者
-sudo ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
+# # 或者
+# sudo ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
+
+# 永久添加
+# cat <<EOF | sudo tee /etc/sysconfig/static-routes
+# any net 10.96.0.1 gw 192.168.50.10
+# EOF
+echo "up route add -net 10.96.0.1 gw 192.168.50.10" | sudo tee -a /etc/network/interfaces
 ```
 
 ### 加入集群

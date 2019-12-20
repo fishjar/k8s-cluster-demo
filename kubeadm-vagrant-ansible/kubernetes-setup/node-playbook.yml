@@ -109,9 +109,22 @@
 
     ########### 以上步骤所有节点一样 ##############
 
-    - name: 添加路由（避免网络插件1/2错误）
+    - name: 添加路由-临时（避免网络插件1/2错误）
+      command: sudo route add 10.96.0.1 gw 192.168.50.10
+
+    - name: 添加路由-永久（避免网络插件1/2错误）
       # command: route add 10.96.0.1 gw 192.168.50.10
-      command: ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
+      # command: ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
+      # lineinfile:
+      #   path: /etc/sysconfig/static-routes
+      #   state: present
+      #   create: yes
+      #   line: any net 10.96.0.1 gw 192.168.50.10
+      lineinfile:
+        path: /etc/network/interfaces
+        state: present
+        create: yes
+        line: up route add -net 10.96.0.1 gw 192.168.50.10
 
     - name: 复制加入集群命令到节点
       copy: src=join-command dest=/tmp/join-command.sh mode=0777
