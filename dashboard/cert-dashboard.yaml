@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: dashboard-selfsigned
+  namespace: kubernetes-dashboard
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: dashboard-cert
+  namespace: kubernetes-dashboard
+spec:
+  commonName: dashboard.foo.org
+  secretName: dashboard-cert-tls
+  issuerRef:
+    name: dashboard-selfsigned

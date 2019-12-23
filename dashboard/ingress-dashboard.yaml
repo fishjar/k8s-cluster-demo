@@ -4,9 +4,15 @@ metadata:
   name: ingress-dashboard
   namespace: kubernetes-dashboard
   annotations:
-    # use the shared ingress-nginx
-    kubernetes.io/ingress.class: "kubernetes-dashboard"
+    # 表示ingress的类型，metallb需要
+    kubernetes.io/ingress.class: "nginx"
+    # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
+  tls:
+    - hosts:
+        - dashboard.foo.org
+      secretName: dashboard-cert-tls
   rules:
     - host: dashboard.foo.org
       http:
@@ -14,4 +20,4 @@ spec:
           - path: /
             backend:
               serviceName: kubernetes-dashboard
-              servicePort: 80
+              servicePort: 443

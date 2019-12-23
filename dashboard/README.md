@@ -68,6 +68,20 @@ https://192.168.50.10:30393/
 
 ### ingress
 
+```sh
+# 安装
+kubectl apply -f recommended.yaml
+
+# 修改service,使用metallb
+kubectl apply -f service-dashboard.yaml
+
+# 创建issuer 及 cert
+kubectl apply -f cert-dashboard.yaml
+
+# 创建ingress
+kubectl apply -f ingress-dashboard.yaml
+```
+
 ## 创建用户
 
 ```sh
