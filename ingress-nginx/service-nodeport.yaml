@@ -8,11 +8,16 @@ metadata:
     app.kubernetes.io/part-of: ingress-nginx
 spec:
   # this setting is t make sure the source IP address is preserved.
+  # NodePort方式 需要以下两个参数
   externalTrafficPolicy: Local
   externalIPs:
     - 192.168.50.10
     - 192.168.50.11
     - 192.168.50.12
+  # 注意不同类型
+  # metallb：LoadBalancer
+  # NodePort：NodePort
+  # host network：NodePort
   type: LoadBalancer
   ports:
     - name: http

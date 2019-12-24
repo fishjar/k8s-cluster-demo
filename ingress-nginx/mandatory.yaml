@@ -211,6 +211,7 @@ spec:
         prometheus.io/scrape: "true"
     spec:
       # wait up to five minutes for the drain of connections
+      # host network 方式需要以下两个参数
       # dnsPolicy: ClusterFirstWithHostNet
       # hostNetwork: true
       terminationGracePeriodSeconds: 300
