@@ -10,5 +10,5 @@ Kubernetes 集群搭建测试及例子
   - [`cert-manager` 安装](cert-manager/README.md)
   - [`ingress-nginx` 安装](ingress-nginx/README.md)
   - [`MatalLB` 安装](metallb/README.md)
-  - [`dashboard` 安装](kubernetes-dashboard/README.md)
-  - [`deployment` 部署测试](kubernetes-deployment/README.md)
+  - [`dashboard` 安装](dashboard/README.md)
+  - [`deployment` 部署测试](deployment/README.md)
