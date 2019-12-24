@@ -228,6 +228,9 @@ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl versio
 ### 其他操作
 
 ```sh
+# 打印加入集群命令
+kubeadm token create --print-join-command
+
 # 查看节点
 kubectl get nodes
 

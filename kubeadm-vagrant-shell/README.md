@@ -49,7 +49,7 @@ sudo -Es
 sudo su -
 ```
 
-## 主节点
+## 启动
 
 ```sh
 vagrant up

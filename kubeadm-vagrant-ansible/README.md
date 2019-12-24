@@ -62,10 +62,9 @@ sudo -Es
 sudo su -
 ```
 
-## 主节点
+## 启动
 
 ```sh
-# 启动
 vagrant up
 Bringing machine 'k8s-master' up with 'virtualbox' provider...
 Bringing machine 'node-1' up with 'virtualbox' provider...
