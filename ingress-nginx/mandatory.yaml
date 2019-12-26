@@ -210,10 +210,10 @@ spec:
         prometheus.io/port: "10254"
         prometheus.io/scrape: "true"
     spec:
-      # wait up to five minutes for the drain of connections
       # host network 方式需要以下两个参数
       # dnsPolicy: ClusterFirstWithHostNet
       # hostNetwork: true
+      # wait up to five minutes for the drain of connections
       terminationGracePeriodSeconds: 300
       serviceAccountName: nginx-ingress-serviceaccount
       nodeSelector:

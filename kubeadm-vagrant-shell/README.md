@@ -40,9 +40,9 @@ vagrant suspend
 vagrant resume
 
 # 登录各个虚拟机
-vagrant ssh k8s-master
-vagrant ssh node-1
-vagrant ssh node-2
+vagrant ssh k8s0
+vagrant ssh k8s1
+vagrant ssh k8s2
 
 # 切换root用户
 sudo -Es

@@ -20,24 +20,19 @@
 
 ```Vagrantfile
 # Vagrantfile
-IMAGE_NAME = "ubuntu/xenial64"
-N = 2
 Vagrant.configure("2") do |config|
     config.ssh.insert_key = false
-    config.vm.provider "virtualbox" do |v|
-        v.memory = 1024
-        v.cpus = 2
-    end
-    config.vm.define "k8s-master" do |master|
-        master.vm.box = IMAGE_NAME
-        master.vm.network "private_network", ip: "192.168.50.10"
-        master.vm.hostname = "k8s-master"
-    end
-    (1..N).each do |i|
-        config.vm.define "node-#{i}" do |node|
-            node.vm.box = IMAGE_NAME
-            node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
-            node.vm.hostname = "node-#{i}"
+    (0..2).each do |i|
+        config.vm.define "k8s#{i}" do |node|
+            node.vm.box = "ubuntu/xenial64"
+            node.vm.hostname = "k8s#{i}"
+            node.vm.network "private_network", ip: "192.168.50.#{i + 10}", netmask: "255.255.255.0", auto_config: true, virtualbox__intnet: "k8s-net"
+            node.vm.provider "virtualbox" do |v|
+                v.name = "k8s#{i}"
+                v.memory = 1024
+                v.gui = false
+            end        
+            node.vm.provision :shell, inline: "sed 's/127\.0\.1\.1.*k8s.*/192\.168\.50\.#{i + 10} k8s#{i}/' -i /etc/hosts"
         end
     end
 end
@@ -63,16 +58,43 @@ vagrant suspend
 vagrant resume
 
 # 登录各个虚拟机
-vagrant ssh k8s-master
-vagrant ssh node-1
-vagrant ssh node-2
+vagrant ssh k8s0
+vagrant ssh k8s1
+vagrant ssh k8s2
 
 # 切换root用户
 sudo -Es
 sudo su -
+
+# 删除网卡
+VBoxManage hostonlyif remove vboxnet0
 ```
 
 ## 所有节点
+
+### `ubuntu`国内源
+
+```sh
+# 备份
+sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+
+# 覆写
+cat <<EOF | sudo tee /etc/apt/sources.list
+# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+
+# 预发布软件源，不建议启用
+# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-proposed main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-proposed main restricted universe multiverse
+EOF
+```
 
 ### 安装`docker`
 
@@ -117,8 +139,10 @@ sudo apt-get install -y docker-ce=5:18.09.0~3-0~ubuntu-xenial docker-ce-cli=5:18
 
 ####### 经测试，有时候以下两个步骤无需执行  #######
 # 设置daemon
+# 备选：http://hub-mirror.c.163.com
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
+  "registry-mirrors": ["https://registry.docker-cn.com"],
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
   "log-opts": {
@@ -205,8 +229,8 @@ done;
 
 ```sh
 # 参考：https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
-# kubeadm init --kubernetes-version="v1.17.0" --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s-master
-sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s-master
+# kubeadm init --kubernetes-version="v1.17.0" --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
+sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
 
 # root用户
 export KUBECONFIG=/etc/kubernetes/admin.conf

@@ -2,7 +2,7 @@
 
 echo -e "\e[1;36m ********** 主节点 ********** \e[0m"
 echo -e "\e[1;36m ***** 建立集群 ***** \e[0m"
-sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s-master
+sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
 
 echo -e "\e[1;36m ***** 非root用户配置 ***** \e[0m"
 sudo --user=vagrant mkdir -p /home/vagrant/.kube
