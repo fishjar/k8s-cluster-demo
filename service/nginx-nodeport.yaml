@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  type: NodePort # 重点
+  # 通过以下两个参数使得服务获取 EXTERNAL-IP
+  # externalTrafficPolicy: Local
+  # externalIPs:
+  #   - 192.168.50.10
+  #   - 192.168.50.11
+  #   - 192.168.50.12
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    app: nginx
