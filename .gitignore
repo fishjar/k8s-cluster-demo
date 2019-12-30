@@ -1,4 +1,5 @@
 join-command
 tmp
 .vagrant
+*.box
 *.log
