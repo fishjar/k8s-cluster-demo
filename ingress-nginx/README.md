@@ -14,7 +14,7 @@
 # 安装 （注意修改Deployment配置，尤其host network方式）
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
 
-# 入口服务（注意修改配置，尤其NodePort方式）
+# 入口服务（根据访问方式，注意修改配置）
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/service-nodeport.yaml
 
 # 更新参数（host network方式）
