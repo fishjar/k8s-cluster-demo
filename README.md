@@ -12,3 +12,5 @@ Kubernetes 集群搭建测试及例子
   - [`MatalLB` 安装](metallb/README.md)
   - [`dashboard` 安装](dashboard/README.md)
   - [`deployment` 部署测试](deployment/README.md)
+  - [`service` 服务访问](service/README.md)
+  - [`istio` 安装](istio/README.md)
