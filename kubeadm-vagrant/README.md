@@ -193,13 +193,13 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
-### 配置节点 IP 地址（省略此步骤会有 bug）
+<!-- ### 配置节点 IP 地址（省略此步骤会有 bug）（经测试此步骤不需要）
 
 ```sh
 # 参考：https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/#non-public-ip-used-for-containers
 echo KUBELET_EXTRA_ARGS=\"--node-ip=`ip addr show enp0s8 | grep inet | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}/" | tr -d '/'`\" | sudo tee -a /etc/default/kubelet
 sudo systemctl daemon-reload && sudo systemctl restart kubelet
-```
+``` -->
 
 ### 提前下载所需镜像
 
@@ -228,9 +228,21 @@ done;
 ### 建立集群
 
 ```sh
-# 参考：https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
-# kubeadm init --kubernetes-version="v1.17.0" --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
-sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
+# # 参考：https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
+# # kubeadm init --kubernetes-version="v1.17.0" --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
+# sudo kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s0
+
+# 推荐参数
+# 参考： http://tiven.wang/articles/kubernetes-create-cluster-using-kubeadm/
+sudo kubeadm init \
+    --apiserver-advertise-address="192.168.50.10" \
+    --service-cidr=10.96.0.0/12 \
+    --pod-network-cidr=10.32.0.0/16
+
+# # https://stackoverflow.com/questions/39872332/how-to-fix-weave-net-crashloopbackoff-for-the-second-node/40314205
+# sudo kubeadm init \
+#     --apiserver-advertise-address="192.168.50.10" \
+#     --cluster-cidr=10.32.0.0/12
 
 # root用户
 export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -264,6 +276,13 @@ kubectl get pods --all-namespaces
 # 查看服务
 kubectl get svc
 
+# reset all kubeadm installed state
+kubeadm reset
+# reset iptables
+iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+# reset the IPVS tables
+ipvsadm -C
+
 # 清除节点
 kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
 kubectl delete node <node name>
@@ -271,7 +290,7 @@ kubectl delete node <node name>
 
 ## 工作节点
 
-### 配置一条路由，否则会有 bug
+<!-- ### 配置一条路由，否则会有 bug（经测试，如果kubeadm init增加相应参数后不需要此步骤）
 
 ```sh
 # 相关参考：
@@ -292,7 +311,7 @@ sudo route add 10.96.0.1 gw 192.168.50.10
 # any net 10.96.0.1 gw 192.168.50.10
 # EOF
 echo "up route add -net 10.96.0.1 gw 192.168.50.10" | sudo tee -a /etc/network/interfaces
-```
+``` -->
 
 ### 加入集群
 

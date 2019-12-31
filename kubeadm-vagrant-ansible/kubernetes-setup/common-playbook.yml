@@ -1,0 +1,162 @@
+---
+- hosts: all
+  become: true
+  environment:
+    PYTHONIOENCODING: utf8
+  tasks:
+    - name: 备份 sources.list
+      copy:
+        src: /etc/apt/sources.list
+        dest: /etc/apt/sources.list.bak
+
+    - name: 设置 sources.list
+      copy:
+        dest: /etc/apt/sources.list
+        content: |
+          # 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+          deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse
+          # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse
+          deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+          # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse
+          deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+          # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse
+          deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+          # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse
+          # 预发布软件源，不建议启用
+          # deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-proposed main restricted universe multiverse
+          # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-proposed main restricted universe multiverse
+
+    - name: 安装 docker 相关依赖
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+
+    - name: 添加 docker key
+      apt_key:
+        # url: https://download.docker.com/linux/ubuntu/gpg
+        url: http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg
+        state: present
+
+    - name: 添加 docker 国内源
+      apt_repository:
+        # repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        repo: deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu xenial stable
+        update_cache: yes
+
+    - name: 安装 docker
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - docker-ce=5:18.09.0~3-0~ubuntu-xenial
+          - docker-ce-cli=5:18.09.0~3-0~ubuntu-xenial
+          - containerd.io
+      notify:
+        - docker status
+
+    - name: 设置 docker daemon.json
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "registry-mirrors": ["https://registry.docker-cn.com"],
+            "exec-opts": ["native.cgroupdriver=systemd"],
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "100m"
+            },
+            "storage-driver": "overlay2"
+          }
+
+    - name: 创建 docker.service.d 文件夹
+      file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+
+    - name: daemon reload
+      command: systemctl daemon-reload
+
+    - name: 重启 docker
+      command: systemctl restart docker
+
+    # 经测试，此步可略
+    - name: 添加 vagrant 到 docker 用户组 （可略）
+      user:
+        name: vagrant
+        group: docker
+
+    # 经测试虚拟机没有设置虚拟内存，因此此步可略
+    - name: 移除 swapfile （可略）
+      mount:
+        name: "{{ item }}"
+        fstype: swap
+        state: absent
+      with_items:
+        - swap
+        - none
+
+    # 经测试虚拟机没有设置虚拟内存，因此此步可略
+    - name: 关闭 swap （可略）
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: 添加 kubernetes key
+      apt_key:
+        # url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        url: https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg
+        state: present
+
+    - name: 添加 kubernetes 国内源
+      apt_repository:
+        # repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        repo: deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+
+    - name: 安装 Kubernetes
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - kubelet
+          - kubeadm
+          - kubectl
+
+    # # 经测试此二个步骤不需要
+    # - name: 设置节点IP
+    #   lineinfile:
+    #     path: /etc/default/kubelet
+    #     state: present
+    #     create: yes
+    #     line: KUBELET_EXTRA_ARGS=\"--node-ip={{ node_ip }}\"
+
+    # - name: 重启 kubelet
+    #   service:
+    #     name: kubelet
+    #     daemon_reload: yes
+    #     state: restarted
+
+    - name: 拉取 k8s 所需镜像
+      shell: |
+        for  i  in  `kubeadm config images list`;  do
+          imageName=${i#k8s.gcr.io/}
+          docker pull registry.aliyuncs.com/google_containers/$imageName
+          docker tag registry.aliyuncs.com/google_containers/$imageName k8s.gcr.io/$imageName
+          docker rmi registry.aliyuncs.com/google_containers/$imageName
+        done;
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started

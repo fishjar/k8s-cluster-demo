@@ -71,10 +71,10 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
-echo -e "\e[1;36m ***** 配置节点IP ***** \e[0m"
-echo KUBELET_EXTRA_ARGS=\"--node-ip=`ip addr show enp0s8 | grep inet | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}/" | tr -d '/'`\" | sudo tee -a /etc/default/kubelet
-sudo systemctl daemon-reload && sudo systemctl restart kubelet
-# sleep 5
+# echo -e "\e[1;36m ***** 配置节点IP ***** \e[0m"
+# echo KUBELET_EXTRA_ARGS=\"--node-ip=`ip addr show enp0s8 | grep inet | grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}/" | tr -d '/'`\" | sudo tee -a /etc/default/kubelet
+# sudo systemctl daemon-reload && sudo systemctl restart kubelet
+# # sleep 5
 
 echo -e "\e[1;36m ***** 拉取 k8s 镜像 ***** \e[0m"
 for i in `kubeadm config images list`; do

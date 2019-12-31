@@ -1,13 +1,13 @@
 #!/bin/bash
 
 echo -e "\e[1;36m ********** 工作节点 ********** \e[0m"
-echo -e "\e[1;36m ***** 添加路由 ***** \e[0m"
-# sudo ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
-# cat <<EOF | sudo tee /etc/sysconfig/static-routes
-# any net 10.96.0.1 gw 192.168.50.10
-# EOF
-sudo route add 10.96.0.1 gw 192.168.50.10
-echo "up route add -net 10.96.0.1 gw 192.168.50.10" | sudo tee -a /etc/network/interfaces
+# echo -e "\e[1;36m ***** 添加路由 ***** \e[0m"
+# # sudo ip route add 10.96.0.0/16 via 192.168.50.10 dev enp0s8
+# # cat <<EOF | sudo tee /etc/sysconfig/static-routes
+# # any net 10.96.0.1 gw 192.168.50.10
+# # EOF
+# sudo route add 10.96.0.1 gw 192.168.50.10
+# echo "up route add -net 10.96.0.1 gw 192.168.50.10" | sudo tee -a /etc/network/interfaces
 
 echo -e "\e[1;36m ***** 安装sshpass ***** \e[0m"
 sudo apt-get update
