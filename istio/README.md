@@ -71,13 +71,25 @@ kubectl get gateway
 
 # 设置访问网关的 INGRESS_HOST 和 INGRESS_PORT 变量
 # 参考：https://preliminary.istio.io/zh/docs/tasks/traffic-management/ingress/ingress-control/#determining-the-ingress-i-p-and-ports
+# 使用了外部负载均衡器
+export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].port}')
+# node port 访问
+export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
+export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')
+
 
 # 设置 GATEWAY_URL
 export GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT
+# 查看地址
+echo $GATEWAY_URL
 
 # 访问
 # 还可以用浏览器打开网址 http://$GATEWAY_URL/productpage，来浏览应用的 Web 页面
+# http://192.168.50.200/productpage
 curl -s http://${GATEWAY_URL}/productpage | grep -o "<title>.*</title>"
+
 
 # 应用默认目标规则（没有启用双向 TLS）
 kubectl apply -f samples/bookinfo/networking/destination-rule-all.yaml
