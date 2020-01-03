@@ -47,7 +47,7 @@ istioctl manifest generate --set profile=demo | kubectl delete -f -
 ```sh
 # 参考： https://preliminary.istio.io/zh/docs/examples/bookinfo/
 
-# Istio 默认自动注入 Sidecar. 
+# Istio 默认自动注入 Sidecar.
 # 请为 default 命名空间打上标签 istio-injection=enabled：
 kubectl label namespace default istio-injection=enabled
 
@@ -105,4 +105,101 @@ kubectl get virtualservices   #-- there should be no virtual services
 kubectl get destinationrules  #-- there should be no destination rules
 kubectl get gateway           #-- there should be no gateway
 kubectl get pods              #-- the Bookinfo pods should be deleted
+```
+
+## sidecar
+
+### 手工注入
+
+```sh
+# 默认情况下将使用集群内的配置
+istioctl kube-inject -f samples/sleep/sleep.yaml | kubectl apply -f -
+
+# 导出配置的本地副本
+kubectl -n istio-system get configmap istio-sidecar-injector -o=jsonpath='{.data.config}' > inject-config.yaml
+kubectl -n istio-system get configmap istio-sidecar-injector -o=jsonpath='{.data.values}' > inject-values.yaml
+kubectl -n istio-system get configmap istio -o=jsonpath='{.data.mesh}' > mesh-config.yaml
+
+# 使用本地配置
+istioctl kube-inject \
+    --injectConfigFile inject-config.yaml \
+    --meshConfigFile mesh-config.yaml \
+    --valuesFile inject-values.yaml \
+    --filename samples/sleep/sleep.yaml \
+    | kubectl apply -f -
+
+# 验证
+kubectl get pod  -l app=sleep
+NAME                     READY   STATUS    RESTARTS   AGE
+sleep-64c6f57bc8-f5n4x   2/2     Running   0          24s
+```
+
+### 自动注入
+
+当 `Kubernetes` 调用 `webhook` 时， `admissionregistration` 配置被应用。
+默认配置将 `sidecar` 注入到所有拥有 `istio-injection=enabled` 标签的 `namespace` 下的 `pod` 中。
+
+```sh
+# 部署 sleep 应用
+kubectl apply -f samples/sleep/sleep.yaml
+kubectl get deployment -o wide
+
+# 将 default namespace 标记为 istio-injection=enabled
+# 启用自动注入
+kubectl label namespace default istio-injection=enabled
+kubectl get namespace -L istio-injection
+NAME           STATUS    AGE       ISTIO-INJECTION
+default        Active    1h        enabled
+istio-system   Active    1h
+kube-public    Active    1h
+kube-system    Active    1h
+
+# 验证新创建的 pod 是否注入 sidecar
+kubectl delete pod -l app=sleep
+kubectl get pod -l app=sleep
+NAME                     READY     STATUS        RESTARTS   AGE
+sleep-776b7bcdcd-7hpnk   1/1       Terminating   0          1m
+sleep-776b7bcdcd-bhn9m   2/2       Running       0          7s
+
+# 查看已注入 pod 的详细状态
+kubectl describe pod -l app=sleep
+
+# 禁用 default namespace 注入
+kubectl label namespace default istio-injection-
+
+# 确认新的 pod 在创建时没有 sidecar
+kubectl delete pod -l app=sleep
+kubectl get pod
+NAME                     READY     STATUS        RESTARTS   AGE
+sleep-776b7bcdcd-bhn9m   2/2       Terminating   0          2m
+sleep-776b7bcdcd-gmvnr   1/1       Running       0          2s
+
+# 卸载 sidecar 自动注入器
+kubectl delete mutatingwebhookconfiguration istio-sidecar-injector
+kubectl -n istio-system delete service istio-sidecar-injector
+kubectl -n istio-system delete deployment istio-sidecar-injector
+kubectl -n istio-system delete serviceaccount istio-sidecar-injector-service-account
+kubectl delete clusterrole istio-sidecar-injector-istio-system
+kubectl delete clusterrolebinding istio-sidecar-injector-admin-role-binding-istio-system
+
+# 清理在此任务中修改过的其他资源
+kubectl label namespace default istio-injection-
+```
+
+```yaml
+# 使用 sidecar.istio.io/inject 注解来禁用 sidecar 注入
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ignored
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+        - name: ignored
+          image: tutum/curl
+          command: ["/bin/sleep", "infinity"]
 ```

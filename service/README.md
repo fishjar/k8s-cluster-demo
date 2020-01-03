@@ -2,6 +2,36 @@
 
 ## 访问一个服务
 
+### `port-forward` 方式
+
+```sh
+# 部署
+kubectl apply -f nginx-port-forward.yaml
+
+# 查看
+kubectl get pod
+kubectl get deployment
+kubectl get rs
+kubectl get svc
+
+# 端口转发
+kubectl port-forward nginx-85ff79dd56-fd22x --address 0.0.0.0 8080:80
+# 相当于
+kubectl port-forward pods/nginx-85ff79dd56-fd22x --address 0.0.0.0 8080:80
+# 或者
+kubectl port-forward deployment/nginx --address 0.0.0.0 8080:80
+# 或者
+kubectl port-forward rs/nginx --address 0.0.0.0 8080:80
+# 或者
+kubectl port-forward svc/nginx --address 0.0.0.0 8080:80
+
+# 测试
+# master
+curl 127.0.0.1:8080
+# 其他机器
+curl 192.168.50.10:8080
+```
+
 ### `hostNet` 方式
 
 ```sh
