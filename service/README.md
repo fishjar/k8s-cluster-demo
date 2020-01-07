@@ -2,6 +2,18 @@
 
 ## 访问一个服务
 
+```sh
+load-balancer | port-forward | nodeport
+
+ingress | traefik | istio  <- cert
+
+service
+
+deployment
+
+pod
+```
+
 ### `port-forward` 方式
 
 ```sh
