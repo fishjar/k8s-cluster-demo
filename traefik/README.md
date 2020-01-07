@@ -21,8 +21,6 @@ helm install ./traefik-helm-chart-master --generate-name
 
 ### 配置
 
-k8s
-
 ```sh
 # 部署
 kubectl apply -f definitions.yaml
