@@ -1,6 +1,12 @@
 # traefik
 
-## 安装
+## docker 环境
+
+(略)
+
+## k8s 环境
+
+### 安装
 
 ```sh
 # 安装 helm （略）
@@ -13,7 +19,7 @@ unzip master.zip
 helm install ./traefik-helm-chart-master --generate-name
 ```
 
-## 配置
+### 配置
 
 k8s
 
