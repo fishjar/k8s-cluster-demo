@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
         config.vm.define "k8s#{i}" do |node|
             node.vm.box = "ubuntu/xenial64"
             node.vm.hostname = "k8s#{i}"
-            node.vm.network "private_network", ip: "192.168.50.#{i + 10}", netmask: "255.255.255.0", auto_config: true, virtualbox__intnet: "k8s-net"
+            node.vm.network "private_network", ip: "192.168.50.#{i + 10}", netmask: "255.255.255.0"
             node.vm.provider "virtualbox" do |v|
                 v.name = "k8s#{i}"
                 v.memory = 1024
