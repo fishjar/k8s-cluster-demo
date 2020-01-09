@@ -1,0 +1,11 @@
+ingressController:
+  enabled: true
+env:
+  database: "off"
+postgresql:
+  enabled: false
+proxy:
+  type: LoadBalancer
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9542"

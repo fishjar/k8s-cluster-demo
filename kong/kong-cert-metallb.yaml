@@ -1,0 +1,66 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+# kind: Issuer
+metadata:
+  name: echo-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: echo-cert
+spec:
+  commonName: echo.foo.org
+  secretName: echo-cert-tls
+  issuerRef:
+    name: echo-selfsigned
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - 192.168.50.200-192.168.50.210
+---
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: echo-foo-org
+# spec:
+#   rules:
+#     - host: echo.foo.org
+#       http:
+#         paths:
+#           - path: /
+#             backend:
+#               serviceName: echo
+#               servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: echo-foo-org
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: echo-selfsigned
+spec:
+  tls:
+    - secretName: echo-cert-tls
+      hosts:
+        - echo.foo.org
+  rules:
+    - host: echo.foo.org
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: echo
+              servicePort: 80

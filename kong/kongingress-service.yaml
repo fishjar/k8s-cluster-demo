@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: demo
+  annotations:
+    configuration.konghq.com: demo-customization
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /foo
+            backend:
+              serviceName: echo
+              servicePort: 80
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: demo-customization
+upstream:
+  hash_on: ip
+proxy:
+  path: /bar/
