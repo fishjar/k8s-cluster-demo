@@ -9,6 +9,13 @@ kubectl apply -f all-in-one-dbless.yaml
 # helm 方式
 helm repo update # get the latest charts
 helm install stable/kong
+# 如果添加配置
+echo "apiVersion: v1
+kind: Namespace
+metadata:
+  name: kong
+" | kubectl apply -f -
+helm install kong stable/kong --namespace kong --values kong-ingress-dbless.yaml
 ```
 
 ### 一些操作
@@ -147,6 +154,7 @@ curl $PROXY_IP/foo
 ```sh
 # 部署
 kubectl apply -f metallb.yaml
+kubectl apply -f metallb-config.yaml
 kubectl apply -f cert-manager.yaml
 kubectl apply -f k8s-echo-server.yaml
 kubectl apply -f kong-cert-metallb.yaml
@@ -309,4 +317,29 @@ error while running "VolumeBinding" filter plugin for pod "prometheus-alertmanag
 
 kubectl describe pod prometheus-server-76b7cf695-flbxg -n monitoring
 error while running "VolumeBinding" filter plugin for pod "prometheus-server-76b7cf695-flbxg": pod has unbound immediate PersistentVolumeClaims
+```
+
+
+## konga
+
+```sh
+# 安装 metallb
+#（略）
+
+# 添加 namespace
+echo "apiVersion: v1
+kind: Namespace
+metadata:
+  name: kong
+" | kubectl apply -f -
+
+# 安装 kong
+# kong内置了 konga？貌似可以通过配置直接安装 konga
+helm install kong stable/kong --namespace kong --values kong-ingress-dbless.yaml
+
+# 安装 konga + ingress
+kubectl apply -f konga.yaml
+
+# 添加 kong-admin ingress
+# （待续）
 ```
