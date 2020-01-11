@@ -7,6 +7,7 @@
 kubectl apply -f all-in-one-dbless.yaml
 
 # helm 方式
+# 参考： https://github.com/helm/charts/tree/master/stable/kong
 helm repo update # get the latest charts
 helm install stable/kong
 # 如果添加配置
@@ -15,7 +16,8 @@ kind: Namespace
 metadata:
   name: kong
 " | kubectl apply -f -
-helm install kong stable/kong --namespace kong --values kong-ingress-dbless.yaml
+# helm install kong stable/kong --namespace kong --values kong-ingress-dbless.yaml
+helm install kong stable/kong --namespace kong --values kong-values.yaml
 ```
 
 ### 一些操作
@@ -355,6 +357,10 @@ https://bit.ly/k4k8s-get-started
 
 # 安装 konga + ingress
 kubectl apply -f konga.yaml
+
+# helm 方式
+# 参考：https://github.com/pantsel/konga/tree/master/charts/konga
+# （略）
 
 # 查看
 kubectl get svc -n kong
