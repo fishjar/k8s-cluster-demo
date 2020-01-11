@@ -246,7 +246,7 @@ metadata:
 plugin: prometheus
 " | kubectl apply -f -
 
-# 修改 
+# 修改
 kubectl edit svc/grafana -n monitoring
 # 将
 type: ClusterIP
@@ -319,12 +319,12 @@ kubectl describe pod prometheus-server-76b7cf695-flbxg -n monitoring
 error while running "VolumeBinding" filter plugin for pod "prometheus-server-76b7cf695-flbxg": pod has unbound immediate PersistentVolumeClaims
 ```
 
-
 ## konga
 
 ```sh
 # 安装 metallb
-#（略）
+kubectl apply -f metallb.yaml
+kubectl apply -f metallb-config.yaml
 
 # 添加 namespace
 echo "apiVersion: v1
@@ -335,11 +335,43 @@ metadata:
 
 # 安装 kong
 # kong内置了 konga？貌似可以通过配置直接安装 konga
-helm install kong stable/kong --namespace kong --values kong-ingress-dbless.yaml
+# helm install kong stable/kong --namespace kong --values kong-ingress-dbless.yaml
+helm install kong stable/kong --namespace kong --values kong-values.yaml
+
+NAME: kong
+LAST DEPLOYED: Sat Jan 11 06:47:50 2020
+NAMESPACE: kong
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+To connect to Kong, please execute the following command
+  HOST=$(kubectl get svc --namespace kong kong-kong-proxy -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  PORT=$(kubectl get svc --namespace kong kong-kong-proxy -o jsonpath='{.spec.ports[0].port}')export PROXY_IP=${HOST}:${PORT}
+curl $PROXY_IP
+
+Once installed, please follow along the getting started guide to start using Kong:
+https://bit.ly/k4k8s-get-started
 
 # 安装 konga + ingress
 kubectl apply -f konga.yaml
 
-# 添加 kong-admin ingress
-# （待续）
+# 查看
+kubectl get svc -n kong
+NAME              TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)                      AGE
+kong-kong-admin   NodePort       10.96.195.220   <none>           8444:30428/TCP               41m
+kong-kong-proxy   LoadBalancer   10.96.210.86    192.168.50.200   80:30381/TCP,443:30290/TCP   41m
+konga             ClusterIP      10.96.216.11    <none>           80/TCP                       80s
+
+kubectl get ingress -n kong
+NAME              HOSTS            ADDRESS          PORTS   AGE
+kong-kong-admin   admin.kong.org   192.168.50.200   80      7m15s
+kong-kong-proxy   proxy.kong.org   192.168.50.200   80      7m15s
+konga-ingress     konga.kong.org   192.168.50.200   80      4m49s
+
+# 浏览器打开 konga.kong.org
+# 注册帐号 admin/admin123
+# 登陆后填写
+# name： （随便填）
+# kong admin url：http://admin.kong.org
 ```

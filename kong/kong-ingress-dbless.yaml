@@ -9,6 +9,3 @@ proxy:
 podAnnotations:
   prometheus.io/scrape: "true"
   prometheus.io/port: "9542"
-admin:
-  enabled: true
-  useTLS: false

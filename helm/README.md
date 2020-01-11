@@ -6,8 +6,16 @@
 # 确认集群信息
 kubectl config current-context
 
+# 方式一
 # From Snap (Linux)
 sudo snap install helm --classic
+
+# 方式二
+# From the Binary Releases
+wget https://get.helm.sh/helm-v3.0.2-linux-amd64.tar.gz
+# 解压
+tar -zxvf helm-v3.0.2-linux-amd64.tar.gz
+sudo mv linux-amd64/helm /usr/local/bin/helm
 
 # add a chart repository
 # helm repo add stable https://kubernetes-charts.storage.googleapis.com/

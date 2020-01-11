@@ -28,7 +28,7 @@ metadata:
   name: konga
   namespace: kong
 spec:
-  type: LoadBalancer
+  # type: LoadBalancer
   ports:
     - name: http
       port: 80
@@ -44,7 +44,7 @@ metadata:
   namespace: kong
 spec:
   rules:
-    - host: konga.foo.org
+    - host: konga.kong.org
       http:
         paths:
           - path: /
